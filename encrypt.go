@@ -89,5 +89,6 @@ func encryptFile(file []byte, path string) {
 
 	data := gcm.Seal(nonce, nonce, file, nil)
 	fmt.Println("enc data ", data)
-	os.WriteFile(path, data, 0777)
+	os.WriteFile(path + ".enc", data, 0777)
 }
+

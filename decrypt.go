@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+
+
 func main() {
 	key := make([]byte, 32)
 	//key := []byte("test")
@@ -43,5 +45,29 @@ func main() {
 	}
 
 	fmt.Println(string(plaintext))
+
+}
+
+func traverseFiles(files []os.DirEntry, base string) {
+	for _, file := range files {
+		if file.IsDir() {
+			fmt.Println("traverseFiles read dir path: ", base+"\\"+file.Name())
+			base = base + "\\" + file.Name()
+			dirRecurse(file, base)
+		} else {
+			fmt.Println("traverseFiles read file path: ", base+"\\"+file.Name())
+			path := base + "\\" + file.Name()
+			data, err := os.ReadFile(path)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			decryptFile(data, path)
+			fmt.Println("file data: ", data)
+		}
+	}
+}
+
+func decryptFile(data []byte, path string) {
 
 }
