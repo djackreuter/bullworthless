@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"fmt"
+	"runtime"
 	"io"
 	"os"
 )
@@ -23,8 +24,11 @@ func main() {
 		fmt.Println("ERROR: ", err)
 		os.Exit(1)
 	}
+	opSystem = runtime.GOOS
 
-	traverseFiles(files, testdir)
+	if opSystem == "windows" {
+		traverseFiles(files, testdir)
+	}
 }
 
 func dirRecurse(dirname os.DirEntry, base string) {
