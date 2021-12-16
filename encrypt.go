@@ -17,13 +17,15 @@ func main() {
 	home, _ := os.UserHomeDir()
 	fmt.Println("home ", home)
 
-	testdir := ".\\test"
+	//testdir := ".\\test"
+	testdir := "./test"
 
 	files, err := os.ReadDir(testdir)
 	if err != nil {
 		fmt.Println("ERROR: ", err)
 		os.Exit(1)
 	}
+	traverseFiles(files, testdir)
 }
 
 func dirRecurse(dirname os.DirEntry, base string) {
@@ -97,6 +99,9 @@ func encryptFile(file []byte, path string) {
 
 	data := gcm.Seal(nonce, nonce, file, nil)
 	fmt.Println("enc data ", data)
-	os.WriteFile(path + ".enc", data, 0777)
+	err = os.WriteFile(path + ".enc", data, 0777)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 

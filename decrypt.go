@@ -10,41 +10,17 @@ import (
 
 
 func main() {
-	key := make([]byte, 32)
 
-	ciphertext, err := os.ReadFile("data.enc")
+}
+
+
+func dirRecurse(dirname os.DirEntry, base string) {
+	files, err := os.ReadDir(base)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	c, err := aes.NewCipher(key)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < nonceSize {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(plaintext))
-
+	traverseFiles(files, base)
 }
 
 
@@ -68,7 +44,7 @@ func traverseFiles(files []os.DirEntry, base string) {
 				fmt.Println(err)
 				os.Exit(1)
 			}
-			encryptFile(data, path)
+			decryptFile(data, path)
 			fmt.Println("file data: ", data)
 		}
 	}
@@ -76,5 +52,39 @@ func traverseFiles(files []os.DirEntry, base string) {
 
 
 func decryptFile(data []byte, path string) {
+	key := make([]byte, 32)
 
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(data) < nonceSize {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println("path pre chop ", path)
+	path = path[:len(path)-4]
+	fmt.Println("path post chop ", path)
+	err = os.WriteFile(path, plaintext, 0777)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(plaintext))
 }
