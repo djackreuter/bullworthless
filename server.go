@@ -37,7 +37,8 @@ func main() {
 			fmt.Println(err, ": Possibly missing or incorrect private key")
 			os.Exit(1)
 		}
-		fmt.Println(aesKey)
+		hexKey := hex.EncodeToString(aesKey)
+		fmt.Println("Decrypted key: ", hexKey)
 	}
 }
 
