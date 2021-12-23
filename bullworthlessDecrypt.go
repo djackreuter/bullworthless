@@ -28,7 +28,7 @@ func main() {
 		fileSep = "\\"
 	}
 	if encKey == "" {
-		fmt.Println("Need decrypted key")
+		fmt.Println("Need decryption key")
 		os.Exit(1)
 	}
 	key, err = hex.DecodeString(encKey)
@@ -44,7 +44,6 @@ func traverseFiles(path string) {
 	files, err := os.ReadDir(path)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 
 	for _, file := range files {
@@ -62,29 +61,29 @@ func traverseFiles(path string) {
 }
 
 func decryptFile(path string) {
-
 	data, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Println("Error: ", err)
+		return
 	}
+	fmt.Println("key: ", key)
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Println("Error: ", err)
+		return
 	}
 
 	gcm, err := cipher.NewGCM(c)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Println("Error: ", err)
+		return
 	}
 
 	nonceSize := gcm.NonceSize()
 	if len(data) < nonceSize {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Println("Decryption error...")
+		return
 	}
 
 	nonce := data[:nonceSize]
@@ -92,7 +91,6 @@ func decryptFile(path string) {
 	decData, err := gcm.Open(nil, nonce, encData, nil)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 
 	err = os.WriteFile(path, decData, 0777)

