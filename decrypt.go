@@ -4,15 +4,24 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"runtime"
+	"encoding/hex"
 	"fmt"
+	"flag"
 	"os"
 )
 
 var fileSep string
+var key []byte
 
 func main() {
 	home, _ := os.UserHomeDir()
-	fmt.Println("home ", home)
+	fmt.Println(home)
+
+	var encKey string
+	var err error
+
+	flag.StringVar(&encKey, "key", "", "Decrypted hex key")
+	flag.Parse()
 
 	//testdir := ".\\test"
 	testdir := "./test"
@@ -22,9 +31,16 @@ func main() {
 	if opSystem == "windows" {
 		fileSep = "\\"
 	}
-
+	if encKey == "" {
+		fmt.Println("Need decrypted key")
+		os.Exit(1)
+	}
+	key, err = hex.DecodeString(encKey)
+	if err != nil {
+		fmt.Println("Error decoding key: ", err)
+	}
+	return
 	traverseFiles(testdir)
-
 }
 
 func traverseFiles(path string) {
@@ -43,7 +59,6 @@ func traverseFiles(path string) {
 			fmt.Println("dir path: ", base)
 		} else {
 			base := path + fileSep + file.Name()
-			
 			fmt.Println("file to dec: ", base)
 			decryptFile(base)
 		}
@@ -60,8 +75,6 @@ func decryptFile(path string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	key := []byte{}
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -94,3 +107,4 @@ func decryptFile(path string) {
 		fmt.Println(err)
 	}
 }
+
