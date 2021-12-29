@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"flag"
+	"path/filepath"
 	"crypto/sha256"
 	"encoding/pem"
 	"encoding/hex"
@@ -28,7 +29,7 @@ func main() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println("Created public_key.pem and private_key.pem")
+		fmt.Println("Created public_key.pem and private_key.pem in keys dir")
 	}
 
 	if encAesKey != "" {
@@ -43,17 +44,24 @@ func main() {
 }
 
 func writeKeys(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey) error {
-	pemPrivFile, err := os.Create("private_key.pem")
+	keyDir := filepath.Join(".", "keys")
+	err := os.MkdirAll(keyDir, 0755)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	pemPubFile, err := os.Create("public_key.pem")
+	p := filepath.FromSlash("keys/private_key.pem")
+	pemPrivFile, err := os.Create(p)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	// start export process
+	p = filepath.FromSlash("keys/public_key.pem")
+	pemPubFile, err := os.Create(p)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	var pemPrivBlock = &pem.Block{
 		Type: "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
@@ -62,7 +70,6 @@ func writeKeys(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey) error {
 		Type: "PUBLIC KEY",
 		Bytes: x509.MarshalPKCS1PublicKey(pubKey),
 	}
-	// write block to file
 	err = pem.Encode(pemPrivFile, pemPrivBlock)
 	if err != nil {
 		return err
@@ -94,7 +101,8 @@ func decryptAesKey(hexKey string) ([]byte, error) {
 		fmt.Println(err)
 		return aesKey, err
 	}
-	privKeyFile, err := os.Open("private_key.pem")
+	p := filepath.FromSlash("keys/private_key.pem")
+	privKeyFile, err := os.Open(p)
 	if err != nil {
 		fmt.Println(err)
 		return aesKey, err
