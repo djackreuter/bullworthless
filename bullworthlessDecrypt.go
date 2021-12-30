@@ -66,8 +66,6 @@ func decryptFile(path string) {
 		fmt.Println("Error: ", err)
 		return
 	}
-	fmt.Println("key: ", key)
-
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		fmt.Println("Error: ", err)
