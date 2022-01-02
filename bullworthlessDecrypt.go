@@ -4,7 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"runtime"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"flag"
 	"os"
@@ -19,7 +19,7 @@ func main() {
 	var encKey string
 	var err error
 
-	flag.StringVar(&encKey, "key", "", "Decrypted hex key")
+	flag.StringVar(&encKey, "key", "", "Decrypted base64 key")
 	flag.Parse()
 
 	opSystem := runtime.GOOS
@@ -31,7 +31,7 @@ func main() {
 		fmt.Println("Need decryption key")
 		os.Exit(1)
 	}
-	key, err = hex.DecodeString(encKey)
+	key, err = base64.RawStdEncoding.DecodeString(encKey)
 	if err != nil {
 		fmt.Println("Error decoding key: ", err)
 	}

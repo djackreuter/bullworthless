@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"crypto/sha256"
 	"encoding/pem"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"os"
 )
@@ -38,8 +38,8 @@ func main() {
 			fmt.Println(err, ": Possibly missing or incorrect private key")
 			os.Exit(1)
 		}
-		hexKey := hex.EncodeToString(aesKey)
-		fmt.Println("Decrypted key: ", hexKey)
+		base64key := base64.RawStdEncoding.EncodeToString(aesKey)
+		fmt.Println("Decrypted key: ", base64key)
 	}
 }
 
@@ -94,9 +94,9 @@ func genKeys() error {
 	return writeKeys(privKey, pubKey)
 }
 
-func decryptAesKey(hexKey string) ([]byte, error) {
+func decryptAesKey(base64key string) ([]byte, error) {
 	var aesKey []byte
-	aesEncKey, err := hex.DecodeString(hexKey)
+	aesEncKey, err := base64.RawStdEncoding.DecodeString(base64key)
 	if err != nil {
 		fmt.Println(err)
 		return aesKey, err
