@@ -122,6 +122,10 @@ func encryptFile(path string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fi, err := os.Lstat(path)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -144,7 +148,7 @@ func encryptFile(path string) {
 
 	enc := gcm.Seal(nil, nonce, data, nil)
 	d := append(nonce, enc...)
-	err = os.WriteFile(path, d, 0777)
+	err = os.WriteFile(path, d, fi.Mode().Perm())
 	if err != nil {
 		fmt.Println(err)
 	}

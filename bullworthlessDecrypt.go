@@ -66,7 +66,10 @@ func decryptFile(path string) {
 		fmt.Println("Error: ", err)
 		return
 	}
-	fmt.Println("key: ", key)
+	fi, err := os.Lstat(path)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -93,7 +96,7 @@ func decryptFile(path string) {
 		fmt.Println("Error: ", err)
 	}
 
-	err = os.WriteFile(path, decData, 0777)
+	err = os.WriteFile(path, decData, fi.Mode().Perm())
 	if err != nil {
 		fmt.Println(err)
 	}
