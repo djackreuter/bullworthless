@@ -83,15 +83,10 @@ func decryptFile(path string) {
 		return
 	}
 
-	nonceSize := gcm.NonceSize()
-	if len(data) < nonceSize {
-		fmt.Println("Decryption error...")
-		return
-	}
+	nonce, encData := data[:gcm.NonceSize()], data[gcm.NonceSize():]
 
-	nonce := data[:nonceSize]
-	encData := data[nonceSize:]
 	decData, err := gcm.Open(nil, nonce, encData, nil)
+
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
