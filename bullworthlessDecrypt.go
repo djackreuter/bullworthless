@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"encoding/hex"
 	"fmt"
+	"path/filepath"
 	"flag"
 	"os"
 )
@@ -61,6 +62,9 @@ func traverseFiles(path string) {
 }
 
 func decryptFile(path string) {
+	if filepath.Ext(path) != ".enc" {
+		return
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -85,13 +89,16 @@ func decryptFile(path string) {
 
 	nonce, encData := data[:gcm.NonceSize()], data[gcm.NonceSize():]
 
+	fmt.Println("Decrypting: ", path)
+	p := path[:len(path)-4]
 	decData, err := gcm.Open(nil, nonce, encData, nil)
 
 	if err != nil {
 		fmt.Println("Error: ", err)
+		fmt.Println("Path: ", p)
 	}
 
-	err = os.WriteFile(path, decData, fi.Mode().Perm())
+	err = os.WriteFile(p, decData, fi.Mode().Perm())
 	if err != nil {
 		fmt.Println(err)
 	}

