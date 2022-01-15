@@ -1,5 +1,6 @@
 ﻿# Bullworthless
-
+ ## Ransomware impementation in Go
+I wrote this to better understand how ransomeware and encryption works. Public and Private RSA keys are included in repo for easy POC and to discourage abuse.
 > DISCLAIMER: This program will encrypt files on the computer on which it's ran!! It is imperative that end user follow all instructions to ensure safe recovery of files after encryption. Usage of this software without prior consent is illegal. It's the end user's responsibility to obey all applicable local, state, and federal laws. This software is provided "AS IS" and the Developer assumes no liability, and is not responsible for any misuse, data loss, or other damages that may be caused by this program. This software is for educational purposes only!
 
 ## Steps:
@@ -20,10 +21,10 @@ run `-h` on the server or bullworthlessDecrypt binaries for usage.
 5. Run
 
 ### Decryption Steps
-The attacker server or webhook will receive the encrypted AES key. In the same dir as the private key generated on the attacker server run: `./server -decryptAES <encrypted_key>`
+The attacker server or webhook will receive the encrypted AES key. Run: `./server -decryptAES <encrypted_key>` in the same directory as the `keys` folder.
 This will get you back the AES key.
 
-Then to decrypt the files again run: `./BullworthlessDecrypt -key <decrypted_key>` on the victim machine
+Then to decrypt the files again run: `./BullworthlessDecrypt -key <decrypted_key>` on the target machine.
 
 ---
 You can find precompiled `server` and `bullworthlessDecrypt` binaries in the releases directory. `bullworthless.go` needs modification before compilation, so you need to compile that one yourself after making the aforementioned changes.
